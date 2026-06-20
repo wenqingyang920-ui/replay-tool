@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客服对话复盘工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .panel-body {
+            padding: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            min-height: 200px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-section input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-ai:hover {
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .analysis-section {
+            margin-top: 30px;
+        }
+
+        .model-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .model-card.san-duo {
+            border-left-color: #4CAF50;
+        }
+
+        .model-card.tong-li-xin {
+            border-left-color: #FF9800;
+        }
+
+        .model-card.ping-jia {
+            border-left-color: #2196F3;
+        }
+
+        .model-card.bu-man {
+            border-left-color: #F44336;
+        }
+
+        .model-card.you-hua {
+            border-left-color: #9C27B0;
+        }
+
+        .model-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .model-title .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .model-card.san-duo .icon { background: #4CAF50; }
+        .model-card.tong-li-xin .icon { background: #FF9800; }
+        .model-card.ping-jia .icon { background: #2196F3; }
+        .model-card.bu-man .icon { background: #F44336; }
+        .model-card.you-hua .icon { background: #9C27B0; }
+
+        .analysis-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .analysis-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-item-title .num {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .analysis-item-content {
+            color: #666;
+            line-height: 1.6;
+            padding-left: 32px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .highlight-box.good {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .highlight-box.warning {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .highlight-box.bad {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(244, 67, 54, 0.05) 100%);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tag-green { background: #E8F5E9; color: #2E7D32; }
+        .tag-orange { background: #FFF3E0; color: #E65100; }
+        .tag-red { background: #FFEBEE; color: #C62828; }
+        .tag-blue { background: #E3F2FD; color: #1565C0; }
+        .tag-purple { background: #F3E5F5; color: #7B1FA2; }
+
+        .dialog-preview {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dialog-item {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .dialog-item.customer {
+            background: #E3F2FD;
+            margin-right: 50px;
+        }
+
+        .dialog-item.service {
+            background: #E8F5E9;
+            margin-left: 50px;
+        }
+
+        .dialog-item .role {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .dialog-item.customer .role { color: #1565C0; }
+        .dialog-item.service .role { color: #2E7D32; }
+
+        .dialog-item .content {
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .score-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .score-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+
+        .score-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+
+        .score-card .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .score-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-card .desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .star-rating {
+            color: #FFB800;
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+
+        .suggestion-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px dashed #9C27B0;
+        }
+
+        .suggestion-box h4 {
+            color: #9C27B0;
+            margin-bottom: 15px;
+        }
+
+        .suggestion-item {
+            background: #F3E5F5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .suggestion-item .title {
+            font-weight: 600;
+            color: #7B1FA2;
+            margin-bottom: 8px;
+        }
+
+        .suggestion-item .content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .tips-box {
+            background: #FFF8E1;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .tips-box h4 {
+            color: #F57C00;
+            margin-bottom: 10px;
+        }
+
+        .tips-box ul {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .tips-box li {
+            margin-bottom: 5px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-box {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100 ;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .modal-message {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag-item {
+            background: #FFEBEE;
+            color: #C62828;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .config-section h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .config-item label {
+            width: 80px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .config-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>客服对话复盘工具</h1>
+            <p>基于「三多一少法则」与「服务官体验模型」的智能复盘分析</p>
+        </div>
+
+        <div class="main-layout">
+            <div class="panel">
+                <div class="panel-header">
+                    对话记录导入
+                </div>
+                <div class="panel-body">
+                    <div class="config-section">
+                        <h4>AI接口配置（运维可修改）</h4>
+                        <div class="config-item">
+                            <label>接口地址:</label>
+                            <input type="text" id="apiUrl" value="http://localhost:3000/analyze" placeholder="输入AI接口地址">
+                        </div>
+                        <div class="config-item">
+                            <label>Token:</label>
+                            <input type="text" id="apiToken" value="" placeholder="输入鉴权Token">
+                        </div>
+                    </div>
+
+                    <div class="input-section">
+                        <label>业务类别</label>
+                        <input type="text" id="serviceCategory" placeholder="如：配件咨询、售后投诉、产品问题">
+                    </div>
+
+                    <div class="input-section">
+                        <label>质检结果</label>
+                        <input type="text" id="qualityResult" placeholder="合格/不合格">
+                    </div>
+
+                    <div class="input-section">
+                        <label>粘贴对话记录（格式：客户: 内容 或 客服: 内容）</label>
+                        <textarea id="dialogInput" placeholder="示例格式：
+客户: 你好，我想咨询一下XX配件的价格
+客服: 您好！很高兴为您服务，XX配件的价格是XXX元
+客户: 好的，谢谢
+客服: 不客气，请问还有其他需要帮助的吗？"></textarea>
+                    </div>
+
+                    <div class="tips-box">
+                        <h4>导入提示</h4>
+                        <ul>
+                            <li>每条对话格式：客户/客服: 对话内容</li>
+                            <li>支持多轮对话分析</li>
+                            <li>点击「本地分析」使用内置规则分析</li>
+                            <li>点击「AI智能分析」调用后端AI接口深度分析</li>
+                        </ul>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="localBtn" onclick="analyzeDialog('local')">
+                            本地分析
+                        </button>
+                        <button class="btn btn-ai" id="aiBtn" onclick="analyzeDialog('ai')">
+                            AI智能分析
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearInput()">
+                            清空
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    复盘分析结果
+                </div>
+                <div class="panel-body">
+                    <div id="emptyState" class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>请在左侧导入对话记录<br>系统将自动进行深度分析</p>
+                    </div>
+
+                    <div id="analysisResult" style="display: none;">
+                        <div class="model-card">
+                            <div class="model-title">
+                                <span class="icon">💬</span>
+                                对话记录预览
+                            </div>
+                            <div id="dialogPreview" class="dialog-preview"></div>
+                        </div>
+
+                        <div class="model-card san-duo">
+                            <div class="model-title">
+                                <span class="icon">🎯</span>
+                                第一部分：三多一少法则分析
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">1</span>
+                                    多想一步
+                                </div>
+                                <div class="analysis-item-content">
+                                    <p><strong>用心</strong>，假如我是客户，我的想法是什么？</p>
+                                    <div class="highlight-box" id="duoXiangAnalysis"></div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">2</span>
+                                    多问一句
+                                </div>
+                                <div class="analysis-item-content">
+                                    <p><strong>主动</strong>，问出用户没说出口的，并主动提出服务。</p>
+                                    <div class="highlight-box" id="duoWenAnalysis"></div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">3</span>
+                                    多做一点
+                                </div>
+                                <div class="analysis-item-content">
+                                    <p><strong>灵活</strong>，工作标准是规范，客户满意才是我们的目标。</p>
+                                    <div class="highlight-box" id="duoZuoAnalysis"></div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">4</span>
+                                    少些抱怨
+                                </div>
+                                <div class="analysis-item-content">
+                                    <p><strong>同理心</strong>，站在用户维度换位思考，以用户体验为中心，使自身情绪与行为正向化。</p>
+                                    <div class="highlight-box" id="shaoYuanAnalysis"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="model-card tong-li-xin">
+                            <div class="model-title">
+                                <span class="icon">❤️</span>
+                                第二部分：服务官体验模型 - 同理心映射
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">1</span>
+                                    用户说了什么？
+                                </div>
+                                <div class="analysis-item-content" id="userSaid"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">2</span>
+                                    用户做了什么？
+                                </div>
+                                <div class="analysis-item-content" id="userDid"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">3</span>
+                                    用户想了什么？
+                                </div>
+                                <div class="analysis-item-content" id="userThought"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">4</span>
+                                    用户感受到了什么？
+                                </div>
+                                <div class="analysis-item-content" id="userFelt"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">5</span>
+                                    用户有什么困难？
+                                </div>
+                                <div class="analysis-item-content" id="userDifficulty"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">6</span>
+                                    用户有什么需求？
+                                </div>
+                                <div class="analysis-item-content" id="userNeed"></div>
+                            </div>
+                        </div>
+
+                        <div class="model-card ping-jia">
+                            <div class="model-title">
+                                <span class="icon">⭐</span>
+                                第三部分：用户视角评价
+                            </div>
+
+                            <div class="score-section">
+                                <div class="score-card" id="scoreNeng">
+                                    <div class="label">有效性</div>
+                                    <div class="value">--</div>
+                                    <div class="star-rating" id="starNeng"></div>
+                                    <div class="desc">能不能解决问题？</div>
+                                </div>
+                                <div class="score-card" id="scoreYi">
+                                    <div class="label">易用性</div>
+                                    <div class="value">--</div>
+                                    <div class="star-rating" id="starYi"></div>
+                                    <div class="desc">利我、首心、周到？</div>
+                                </div>
+                                <div class="score-card" id="scoreAi">
+                                    <div class="label">情感链接</div>
+                                    <div class="value">--</div>
+                                    <div class="star-rating" id="starAi"></div>
+                                    <div class="desc">爱不爱这次服务？</div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item" style="margin-top: 15px;">
+                                <div class="analysis-item-title">
+                                    <span class="num">1</span>
+                                    （有效性）能不能？
+                                </div>
+                                <div class="analysis-item-content" id="nengBuNeng"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">2</span>
+                                    （易用性）易不易？
+                                </div>
+                                <div class="analysis-item-content" id="yiBuYi"></div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    <span class="num">3</span>
+                                    （情感链接）爱不爱？
+                                </div>
+                                <div class="analysis-item-content" id="aiBuAi"></div>
+                            </div>
+                        </div>
+
+                        <div class="model-card bu-man">
+                            <div class="model-title">
+                                <span class="icon">⚠️</span>
+                                第四部分：不满原因分析
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    不满意标签
+                                </div>
+                                <div class="analysis-item-content">
+                                    <div class="tag-list" id="dissatTags"></div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    服务体验分析
+                                </div>
+                                <div class="analysis-item-content">
+                                    <p>以用户体验为中心，围绕服务沟通模型，找出用户在对话中服务感知对比用户期待的差异项：</p>
+                                    <div class="highlight-box warning" id="buManAnalysis"></div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    描述问题环节
+                                </div>
+                                <div class="analysis-item-content">
+                                    <span class="tag tag-orange">被理解</span>
+                                    <span class="tag tag-orange">有共鸣</span>
+                                    <span class="tag tag-orange">被重视</span>
+                                    <div id="describeAnalysis"></div>
+                                </div>
+                            </div>
+
+                            <div class="analysis-item">
+                                <div class="analysis-item-title">
+                                    解决问题环节
+                                </div>
+                                <div class="analysis-item-content">
+                                    <span class="tag tag-blue">利我</span>
+                                    <span class="tag tag-blue">首心</span>
+                                    <span class="tag tag-blue">周到</span>
+                                    <div id="solveAnalysis"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="model-card you-hua">
+                            <div class="model-title">
+                                <span class="icon">💡</span>
+                                第五部分：服务优化建议
+                            </div>
+
+                            <div class="suggestion-box">
+                                <h4>更好的沟通方式和话术</h4>
+                                <div id="suggestions"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">AI正在深度分析对话，请稍等...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="errorModal">
+        <div class="modal-content">
+            <div class="modal-icon">❌</div>
+            <div class="modal-title" id="modalTitle">提示</div>
+            <div class="modal-message" id="modalMessage"></div>
+            <button class="modal-btn" onclick="closeModal()">确定</button>
+        </div>
+    </div>
+
+    <script>
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('errorModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('errorModal').classList.remove('show');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('localBtn').disabled = true;
+            document.getElementById('aiBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('localBtn').disabled = false;
+            document.getElementById('aiBtn').disabled = false;
+        }
+
+        function analyzeDialog(mode) {
+            const input = document.getElementById('dialogInput').value.trim();
+            if (!input) {
+                showModal('提示', '请先导入对话记录');
+                return;
+            }
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('analysisResult').style.display = 'block';
+
+            const dialogs = parseDialog(input);
+            renderDialogPreview(dialogs);
+
+            if (mode === 'ai') {
+                callAIAnalysis(dialogs);
+            } else {
+                generateLocalAnalysis(dialogs);
+            }
+        }
+
+        function parseDialog(input) {
+            const lines = input.split('\n').filter(line => line.trim());
+            const dialogs = [];
+
+            lines.forEach(line => {
+                const match = line.match(/^(客户|客服|用户|服务员|客服人员)[:：]\s*(.+)/);
+                if (match) {
+                    dialogs.push({
+                        role: match[1].includes('客户') || match[1].includes('用户') ? 'customer' : 'service',
+                        roleName: match[1],
+                        content: match[2]
+                    });
+                }
+            });
+
+            return dialogs;
+        }
+
+        function renderDialogPreview(dialogs) {
+            const container = document.getElementById('dialogPreview');
+            container.innerHTML = dialogs.map(d => `
+                <div class="dialog-item ${d.role}">
+                    <div class="role">${d.roleName}</div>
+                    <div class="content">${d.content}</div>
+                </div>
+            `).join('');
+        }
+
+        async function callAIAnalysis(dialogs) {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const token = document.getElementById('apiToken').value.trim();
+            const serviceCategory = document.getElementById('serviceCategory').value.trim();
+            const qualityResult = document.getElementById('qualityResult').value.trim();
+
+            if (!apiUrl) {
+                showModal('配置错误', '请先配置AI接口地址');
+                return;
+            }
+
+            showLoading();
+
+            const dialogText = dialogs.map(d => `${d.roleName}：${d.content}`).join('\n');
+
+            const requestData = {
+                dialogText: dialogText,
+                serviceCategory: serviceCategory,
+                qualityResult: qualityResult,
+                tagLibrary: "客服原因-服务主动性不足-未多想一步预判用户问题;客服原因-服务主动性不足-未多问一句了解需求;客服原因-服务主动性不足-未多做一点增值服务;客服原因-服务态度问题-语气冷淡;客服原因-服务态度问题-缺乏耐心;客服原因-服务态度问题-抱怨推诿;客服原因-专业能力不足-未解决用户问题;客服原因-专业能力不足-信息告知不准确;客服原因-沟通技巧不足-话术不当;解决方案问题-方案不完整;解决方案问题-未考虑用户便利;解决方案问题-缺乏替代方案",
+                standardRule: "三多一少法则：多想一步（用心，假如我是客户，我的想法是什么）、多问一句（主动，问出用户没说出口的，并主动提出服务）、多做一点（灵活，工作标准是规范，客户满意才是我们的目标）、少些抱怨（同理心，站在用户维度换位思考，以用户体验为中心，使自身情绪与行为正向化）；服务体验官四步模型：第一步同理心映射（用户说了什么、做了什么、想了什么、感受到了什么、有什么困难、有什么需求）、第二步用户视角评价（有效性能不能、易用性易不易、情感链接爱不爱）、第三步不满原因分析（服务感知vs用户期待差异项）、第四步服务优化建议（更好的沟通方式和话术）"
+            };
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (token) {
+                    headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                }
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestData),
+                    timeout: 20000
+                });
+
+                const result = await response.json();
+
+                if (result.code === 200 && result.data) {
+                    fillAnalysisFromAI(result.data);
+                } else {
+                    showModal('分析失败', result.msg || 'AI接口返回数据格式错误');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError' || error.message.includes('timeout')) {
+                    showModal('请求超时', 'AI分析请求超时，请重试');
+                } else {
+                    showModal('网络错误', 'AI接口调用失败：' + error.message);
+                }
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function fillAnalysisFromAI(data) {
+            if (data.empathy) {
+                document.getElementById('userSaid').innerHTML = `<p>${data.empathy.userSay || '无'}</p>`;
+                document.getElementById('userDid').innerHTML = `<p>${data.empathy.userDo || '无'}</p>`;
+                document.getElementById('userThought').innerHTML = `
+                    <p><strong>表层思考：</strong>${data.empathy.userThinkSurface || '无'}</p>
+                    <p><strong>深层担心：</strong>${data.empathy.userThinkDeep || '无'}</p>
+                `;
+                document.getElementById('userFelt').innerHTML = `<p>${data.empathy.userFelt || '无'}</p>`;
+                document.getElementById('userDifficulty').innerHTML = `<p>${data.empathy.userTrouble || '无'}</p>`;
+                document.getElementById('userNeed').innerHTML = `
+                    <p><strong>意图：</strong>${data.empathy.userDemand || '无'}</p>
+                `;
+            }
+
+            if (data.evaluate) {
+                document.getElementById('scoreNeng').querySelector('.value').textContent = (data.evaluate.validStar || 0) + '星';
+                document.getElementById('scoreYi').querySelector('.value').textContent = (data.evaluate.easyStar || 0) + '星';
+                document.getElementById('scoreAi').querySelector('.value').textContent = (data.evaluate.emotionStar || 0) + '星';
+
+                document.getElementById('starNeng').textContent = '★'.repeat(data.evaluate.validStar || 0) + '☆'.repeat(5 - (data.evaluate.validStar || 0));
+                document.getElementById('starYi').textContent = '★'.repeat(data.evaluate.easyStar || 0) + '☆'.repeat(5 - (data.evaluate.easyStar || 0));
+                document.getElementById('starAi').textContent = '★'.repeat(data.evaluate.emotionStar || 0) + '☆'.repeat(5 - (data.evaluate.emotionStar || 0));
+
+                document.getElementById('nengBuNeng').innerHTML = `<p>${data.evaluate.validDesc || '无'}</p>`;
+                document.getElementById('yiBuYi').innerHTML = `<p>${data.evaluate.easyDesc || '无'}</p>`;
+                document.getElementById('aiBuAi').innerHTML = `<p>${data.evaluate.emotionDesc || '无'}</p>`;
+            }
+
+            if (data.dissatTags && data.dissatTags.length > 0) {
+                const tagsHtml = data.dissatTags.map(tag => 
+                    `<span class="tag-item">${tag.firstTag}-${tag.secondTag}-${tag.thirdTag}</span>`
+                ).join('');
+                document.getElementById('dissatTags').innerHTML = tagsHtml;
+            } else {
+                document.getElementById('dissatTags').innerHTML = '<span class="tag tag-green">无明显不满意标签</span>';
+            }
+
+            if (data.gapAnalysis) {
+                document.getElementById('buManAnalysis').innerHTML = `
+                    <p><strong>亮点：</strong>${data.gapAnalysis.goodPoint || '无'}</p>
+                    <p><strong>缺失：</strong>${data.gapAnalysis.lackPoint || '无'}</p>
+                    <p><strong>根因：</strong>${data.gapAnalysis.rootCause || '无'}</p>
+                `;
+            }
+
+            if (data.serviceCheck) {
+                const sc = data.serviceCheck;
+                document.getElementById('duoXiangAnalysis').innerHTML = `
+                    <p><strong>评估：</strong>${sc.lackThinkOneStep ? '⚠️ 缺失' : '✅ 做到'}</p>
+                    <p>${sc.checkDesc || ''}</p>
+                `;
+                document.getElementById('duoWenAnalysis').innerHTML = `
+                    <p><strong>评估：</strong>${sc.lackAskMore ? '⚠️ 缺失' : '✅ 做到'}</p>
+                `;
+                document.getElementById('duoZuoAnalysis').innerHTML = `
+                    <p><strong>评估：</strong>${sc.lackDoMore ? '⚠️ 缺失' : '✅ 做到'}</p>
+                `;
+                document.getElementById('shaoYuanAnalysis').innerHTML = `
+                    <p><strong>评估：</strong>${sc.haveComplaint ? '⚠️ 存在抱怨' : '✅ 无抱怨'}</p>
+                `;
+
+                document.getElementById('suggestions').innerHTML = `
+                    <div class="suggestion-item">
+                        <div class="title">问题原句</div>
+                        <div class="content">${sc.originBadWords || '无'}</div>
+                    </div>
+                    <div class="suggestion-item">
+                        <div class="title">优化话术</div>
+                        <div class="content">${sc.optimizeWords || '无'}</div>
+                    </div>
+                    <div class="suggestion-item">
+                        <div class="title">长效改进建议</div>
+                        <div class="content">${sc.longTermStandard || '无'}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function generateLocalAnalysis(dialogs) {
+            const customerDialogs = dialogs.filter(d => d.role === 'customer');
+            const serviceDialogs = dialogs.filter(d => d.role === 'service');
+            const allContent = dialogs.map(d => d.content).join('');
+            const customerContent = customerDialogs.map(d => d.content).join('');
+            const serviceContent = serviceDialogs.map(d => d.content).join('');
+
+            // ========== 第一部分：同理心映射 ==========
+            
+            // 1. 用户说了什么 - 直接提取用户原话
+            const userSaidHtml = customerDialogs.map((d, i) => 
+                `<p>• ${d.content}</p>`
+            ).join('');
+            document.getElementById('userSaid').innerHTML = userSaidHtml || '<p>无用户对话记录</p>';
+
+            // 2. 用户做了什么 - 分析用户行为
+            const userActions = [];
+            if (customerContent.includes('咨询') || customerContent.includes('问一下') || customerContent.includes('请问')) {
+                userActions.push('• 主动咨询产品/服务信息');
+            }
+            if (customerContent.includes('多少钱') || customerContent.includes('价格') || customerContent.includes('费用')) {
+                userActions.push('• 关注价格/费用问题');
+            }
+            if (customerContent.includes('坏了') || customerContent.includes('问题') || customerContent.includes('故障')) {
+                userActions.push('• 反馈产品问题或故障');
+            }
+            if (customerContent.includes('怎么') || customerContent.includes('如何')) {
+                userActions.push('• 寻求操作指导或解决方案');
+            }
+            if (customerContent.includes('可以') || customerContent.includes('能') || customerContent.includes('能否')) {
+                userActions.push('• 提出服务请求或需求');
+            }
+            if (customerContent.includes('谢谢') || customerContent.includes('好的') || customerContent.includes('明白了')) {
+                userActions.push('• 表达认可或感谢');
+            }
+            if (userActions.length === 0) {
+                userActions.push('• 与客服进行沟通');
+            }
+            document.getElementById('userDid').innerHTML = userActions.join('');
+
+            // 3. 用户想了什么 - 推断表层和深层想法
+            let surfaceThoughts = [];
+            let deepConcerns = [];
+            
+            if (customerContent.includes('价格') || customerContent.includes('多少钱')) {
+                surfaceThoughts.push('了解具体价格');
+                deepConcerns.push('担心价格超出预算或被宰');
+            }
+            if (customerContent.includes('保修') || customerContent.includes('三包') || customerContent.includes('售后')) {
+                surfaceThoughts.push('确认售后保障政策');
+                deepConcerns.push('担心出问题没人管、维修费用高');
+            }
+            if (customerContent.includes('坏了') || customerContent.includes('问题') || customerContent.includes('故障')) {
+                surfaceThoughts.push('解决当前遇到的问题');
+                deepConcerns.push('担心问题无法解决或反复出现');
+            }
+            if (customerContent.includes('怎么') || customerContent.includes('如何')) {
+                surfaceThoughts.push('学习正确的操作方法');
+                deepConcerns.push('担心操作不当造成更大损失');
+            }
+            if (customerContent.includes('门店') || customerContent.includes('地址') || customerContent.includes('在哪')) {
+                surfaceThoughts.push('获取门店位置信息');
+                deepConcerns.push('担心路程远或找不到地方');
+            }
+            if (customerContent.includes('多久') || customerContent.includes('时间')) {
+                surfaceThoughts.push('了解处理时间周期');
+                deepConcerns.push('担心等待时间过长');
+            }
+            
+            document.getElementById('userThought').innerHTML = `
+                <p><strong>表层思考：</strong>${surfaceThoughts.join('、') || '获取服务信息'}</p>
+                <p><strong>深层担心：</strong>${deepConcerns.join('、') || '担心服务不到位、问题无法解决'}</p>
+            `;
+
+            // 4. 用户感受到了什么 - 分析情绪变化
+            const emotions = [];
+            const firstCustomerMsg = customerDialogs[0]?.content || '';
+            const lastCustomerMsg = customerDialogs[customerDialogs.length - 1]?.content || '';
+            
+            // 判断初始情绪
+            if (firstCustomerMsg.includes('急') || firstCustomerMsg.includes('着急')) {
+                emotions.push('• 咨询初期：焦急、紧迫');
+            } else if (firstCustomerMsg.includes('生气') || firstCustomerMsg.includes('不满')) {
+                emotions.push('• 咨询初期：不满、抱怨');
+            } else if (firstCustomerMsg.includes('请问') || firstCustomerMsg.includes('咨询')) {
+                emotions.push('• 咨询初期：期待、信任');
+            } else {
+                emotions.push('• 咨询初期：好奇、试探');
+            }
+            
+            // 判断最终情绪
+            if (lastCustomerMsg.includes('谢谢') && lastCustomerMsg.includes('好的')) {
+                emotions.push('• 获得回复后：满意、感谢');
+            } else if (lastCustomerMsg.includes('明白') || lastCustomerMsg.includes('了解')) {
+                emotions.push('• 获得回复后：理解、认可');
+            } else if (lastCustomerMsg.includes('但是') || lastCustomerMsg.includes('还是')) {
+                emotions.push('• 获得回复后：仍有疑虑');
+            } else if (lastCustomerMsg.includes('不行') || lastCustomerMsg.includes('没用')) {
+                emotions.push('• 获得回复后：不满、失望');
+            } else {
+                emotions.push('• 获得回复后：等待进一步确认');
+            }
+            document.getElementById('userFelt').innerHTML = emotions.join('');
+
+            // 5. 用户有什么困难 - 识别痛点
+            const difficulties = [];
+            if (customerContent.includes('坏了') || customerContent.includes('故障') || customerContent.includes('不能用')) {
+                difficulties.push('• 遇到产品故障，影响正常使用');
+            }
+            if (customerContent.includes('不懂') || customerContent.includes('不会') || customerContent.includes('怎么')) {
+                difficulties.push('• 缺乏产品知识或操作经验');
+            }
+            if (customerContent.includes('担心') || customerContent.includes('怕')) {
+                difficulties.push('• 对服务效果或费用存在担忧');
+            }
+            if (customerContent.includes('之前') && (customerContent.includes('没') || customerContent.includes('没有'))) {
+                difficulties.push('• 曾有过不愉快的服务经历');
+            }
+            if (customerContent.includes('等') && (customerContent.includes('很久') || customerContent.includes('多长时间'))) {
+                difficulties.push('• 等待时间过长或多次咨询');
+            }
+            if (difficulties.length === 0) {
+                difficulties.push('• 需要获取相关信息或帮助');
+            }
+            document.getElementById('userDifficulty').innerHTML = difficulties.join('');
+
+            // 6. 用户有什么需求 - 识别意图和目标
+            let intent = '获取信息';
+            let goal = '解决问题或了解情况';
+            
+            if (customerContent.includes('价格') || customerContent.includes('多少钱')) {
+                intent = '了解产品/服务价格';
+                goal = '判断是否符合预算或做出购买决策';
+            } else if (customerContent.includes('保修') || customerContent.includes('三包')) {
+                intent = '确认售后保障政策';
+                goal = '消除后顾之忧，确认权益';
+            } else if (customerContent.includes('坏了') || customerContent.includes('问题')) {
+                intent = '解决产品故障或问题';
+                goal = '恢复正常使用';
+            } else if (customerContent.includes('门店') || customerContent.includes('地址')) {
+                intent = '获取门店位置信息';
+                goal = '方便到店办理业务';
+            } else if (customerContent.includes('怎么') || customerContent.includes('如何')) {
+                intent = '学习操作方法或流程';
+                goal = '自助解决问题';
+            } else if (customerContent.includes('投诉') || customerContent.includes('反馈')) {
+                intent = '表达不满或反馈问题';
+                goal = '获得补偿或改进服务';
+            }
+            document.getElementById('userNeed').innerHTML = `
+                <p><strong>意图：</strong>${intent}</p>
+                <p><strong>目标：</strong>${goal}</p>
+            `;
+
+            // ========== 第二部分：三多一少法则分析 ==========
+            
+            const firstServiceMsg = serviceDialogs[0]?.content || '';
+            const lastServiceMsg = serviceDialogs[serviceDialogs.length - 1]?.content || '';
+            
+            // 多想一步：客服是否预判用户需求
+            const duoXiangPatterns = [
+                /帮您.*还/, /其他.*问题/, /顺便.*提醒/, /温馨提示/,
+                /是否.*需要/, /建议您/, /考虑到.*您/, /除了.*以外/
+            ];
+            const duoXiangFound = duoXiangPatterns.some(p => p.test(serviceContent));
+            const duoXiangExamples = serviceDialogs.filter(d => 
+                duoXiangPatterns.some(p => p.test(d.content))
+            ).map(d => `"${d.content}"`).join('；');
+            
+            document.getElementById('duoXiangAnalysis').innerHTML = `
+                <p><strong>对话体现：</strong></p>
+                <p>• 客服是否站在用户角度思考需求</p>
+                <p>• 是否主动预判用户可能需要的后续帮助</p>
+                ${duoXiangFound ? `<p>• 体现多想一步的对话：${duoXiangExamples}</p>` : ''}
+                <div class="highlight-box ${duoXiangFound ? 'good' : 'warning'}">
+                    ${duoXiangFound ? '✅ 客服有主动延展服务意识，能预判用户需求' : '⚠️ 客服仅回应了当前问题，未主动预判用户其他需求'}
+                </div>
+            `;
+
+            // 多问一句：客服是否主动询问
+            const duoWenPatterns = [
+                /请问.*还有/, /还有什么/, /是否.*需要/, /需要.*帮/,
+                /还有.*问题/, /方便.*告诉/, /能否.*告知/
+            ];
+            const duoWenFound = duoWenPatterns.some(p => p.test(serviceContent));
+            const duoWenExamples = serviceDialogs.filter(d => 
+                duoWenPatterns.some(p => p.test(d.content))
+            ).map(d => `"${d.content}"`).join('；');
+            
+            document.getElementById('duoWenAnalysis').innerHTML = `
+                <p><strong>对话体现：</strong></p>
+                <p>• 客服是否主动询问用户还有什么问题</p>
+                <p>• 是否问出用户没说出口的需求</p>
+                ${duoWenFound ? `<p>• 体现多问一句的对话：${duoWenExamples}</p>` : ''}
+                <div class="highlight-box ${duoWenFound ? 'good' : 'warning'}">
+                    ${duoWenFound ? '✅ 客服有主动询问意识，能引导用户表达需求' : '⚠️ 客服未主动询问，可能遗漏用户其他需求'}
+                </div>
+            `;
+
+            // 多做一点：客服是否提供增值服务
+            const duoZuoPatterns = [
+                /温馨提示/, /顺便/, /额外/, /建议您/, /提醒您/,
+                /可以帮您.*查/, /天气/, /路况/, /营业时间/
+            ];
+            const duoZuoFound = duoZuoPatterns.some(p => p.test(serviceContent));
+            const duoZuoExamples = serviceDialogs.filter(d => 
+                duoZuoPatterns.some(p => p.test(d.content))
+            ).map(d => `"${d.content}"`).join('；');
+            
+            document.getElementById('duoZuoAnalysis').innerHTML = `
+                <p><strong>对话体现：</strong></p>
+                <p>• 是否在完成基本服务后提供额外价值</p>
+                <p>• 是否有超越标准流程的贴心服务</p>
+                ${duoZuoFound ? `<p>• 体现多做一点的对话：${duoZuoExamples}</p>` : ''}
+                <div class="highlight-box ${duoZuoFound ? 'good' : 'warning'}">
+                    ${duoZuoFound ? '✅ 客服有提供增值服务，体现了灵活服务意识' : '⚠️ 客服仅完成标准服务流程，未提供额外价值'}
+                </div>
+            `;
+
+            // 少些抱怨：客服态度分析
+            const complaintPatterns = [
+                /没办法/, /不可能/, /我怎么知道/, /这不关我事/,
+                /你自己/, /不是我的/, /找别人/, /没办法帮你/
+            ];
+            const complaintFound = complaintPatterns.some(p => p.test(serviceContent));
+            const complaintExamples = serviceDialogs.filter(d => 
+                complaintPatterns.some(p => p.test(d.content))
+            ).map(d => `"${d.content}"`).join('；');
+            
+            document.getElementById('shaoYuanAnalysis').innerHTML = `
+                <p><strong>对话体现：</strong></p>
+                <p>• 客服是否保持积极正面的服务态度</p>
+                <p>• 是否避免消极抱怨性语言</p>
+                ${complaintFound ? `<p>⚠️ 存在消极语言的对话：${complaintExamples}</p>` : ''}
+                <div class="highlight-box ${complaintFound ? 'bad' : 'good'}">
+                    ${complaintFound ? '⚠️ 客服存在消极语言，需注意改进服务态度' : '✅ 服务态度良好，无抱怨性语言'}
+                </div>
+            `;
+
+            // ========== 第三部分：用户视角评价 ==========
+            
+            // 计算评分
+            let scoreNeng = 60, scoreYi = 60, scoreAi = 60;
+            
+            // 有效性评分：是否解决了用户问题
+            const userQuestion = customerDialogs[0]?.content || '';
+            const serviceAnswer = serviceDialogs[serviceDialogs.length - 1]?.content || '';
+            
+            // 检查是否回答了用户的问题
+            if (userQuestion.includes('价格') && serviceAnswer.includes('元')) scoreNeng += 15;
+            if (userQuestion.includes('地址') && (serviceAnswer.includes('地址') || serviceAnswer.includes('位置'))) scoreNeng += 15;
+            if (userQuestion.includes('保修') && (serviceAnswer.includes('保修') || serviceAnswer.includes('三包'))) scoreNeng += 15;
+            if (userQuestion.includes('怎么') && serviceAnswer.includes('可以') && serviceAnswer.includes('先')) scoreNeng += 15;
+            
+            if (lastCustomerMsg.includes('谢谢') || lastCustomerMsg.includes('好的')) scoreNeng += 10;
+            if (serviceDialogs.length >= 3) scoreNeng += 5;
+            
+            // 易用性评分：利我、首心、周到
+            if (firstServiceMsg.includes('您好')) scoreYi += 10;
+            if (duoXiangFound) scoreYi += 10;
+            if (duoWenFound) scoreYi += 10;
+            if (duoZuoFound) scoreYi += 10;
+            
+            // 情感链接评分
+            if (firstServiceMsg.includes('您好') && firstServiceMsg.includes('很高兴')) scoreAi += 15;
+            if (serviceContent.includes('理解') || serviceContent.includes('明白')) scoreAi += 10;
+            if (lastCustomerMsg.includes('谢谢')) scoreAi += 15;
+            if (customerDialogs.length > 1 && customerDialogs[1]?.content.includes('谢谢')) scoreAi += 10;
+            
+            scoreNeng = Math.min(100, scoreNeng);
+            scoreYi = Math.min(100, scoreYi);
+            scoreAi = Math.min(100, scoreAi);
+
+            const starHtml = (score) => '★'.repeat(Math.round(score / 20)) + '☆'.repeat(5 - Math.round(score / 20));
+
+            document.getElementById('scoreNeng').querySelector('.value').textContent = scoreNeng + '%';
+            document.getElementById('scoreYi').querySelector('.value').textContent = scoreYi + '%';
+            document.getElementById('scoreAi').querySelector('.value').textContent = scoreAi + '%';
+
+            document.getElementById('starNeng').textContent = starHtml(scoreNeng);
+            document.getElementById('starYi').textContent = starHtml(scoreYi);
+            document.getElementById('starAi').textContent = starHtml(scoreAi);
+
+            document.getElementById('scoreNeng').className = `score-card ${scoreNeng >= 70 ? 'active' : ''}`;
+            document.getElementById('scoreYi').className = `score-card ${scoreYi >= 70 ? 'active' : ''}`;
+            document.getElementById('scoreAi').className = `score-card ${scoreAi >= 70 ? 'active' : ''}`;
+
+            document.getElementById('nengBuNeng').innerHTML = `
+                <p>处理方案是否解决或改善了用户的问题？</p>
+                <div class="highlight-box ${scoreNeng >= 70 ? 'good' : 'warning'}">
+                    ${scoreNeng >= 70 ? '✅ 基本解决了用户的信息需求' : '⚠️ 可能未完全解决用户问题，建议进一步跟进确认'}
+                </div>
+            `;
+
+            document.getElementById('yiBuYi').innerHTML = `
+                <p>服务是否做到"利我、首心、周到"？</p>
+                <div class="highlight-box ${scoreYi >= 70 ? 'good' : 'warning'}">
+                    <p><strong>利我：</strong>${scoreNeng >= 70 ? '提供了有效信息 ✅' : '信息提供可更完整'}</p>
+                    <p><strong>首心：</strong>${firstServiceMsg.includes('您好') ? '使用了礼貌称呼 ✅' : '可增加礼貌用语'}</p>
+                    <p><strong>周到：</strong>${duoZuoFound ? '有提供增值服务 ✅' : '可进一步提升主动服务意识'}</p>
+                </div>
+            `;
+
+            document.getElementById('aiBuAi').innerHTML = `
+                <p>对话中是否建立了正向"情感连接"？</p>
+                <div class="highlight-box ${scoreAi >= 70 ? 'good' : 'warning'}">
+                    ${lastCustomerMsg.includes('谢谢') ? '✅ 用户表达了感谢，有正向反馈' : '⚠️ 可增加更多情感化表达，增强用户信任'}
+                </div>
+            `;
+
+            // ========== 第四部分：不满原因分析 ==========
+            
+            // 不满意标签
+            const dissatTags = [];
+            if (!firstServiceMsg.includes('您好')) {
+                dissatTags.push({ level: 1, text: '服务态度-问候缺失-未使用标准开场白' });
+            }
+            if (!duoWenFound && serviceDialogs.length <= 2) {
+                dissatTags.push({ level: 2, text: '服务主动性-询问不足-未主动了解其他需求' });
+            }
+            if (!duoXiangFound) {
+                dissatTags.push({ level: 2, text: '服务主动性-预判不足-未主动延展服务' });
+            }
+            if (!duoZuoFound) {
+                dissatTags.push({ level: 2, text: '服务主动性-增值不足-未提供额外价值' });
+            }
+            if (complaintFound) {
+                dissatTags.push({ level: 3, text: '服务态度-消极语言-存在抱怨推诿' });
+            }
+            
+            if (dissatTags.length > 0) {
+                document.getElementById('dissatTags').innerHTML = dissatTags.map(tag => 
+                    `<span class="tag-item">${tag.text}</span>`
+                ).join('');
+            } else {
+                document.getElementById('dissatTags').innerHTML = '<span class="tag tag-green">无明显不满意标签</span>';
+            }
+
+            // 服务差距分析
+            const gapItems = [];
+            if (!firstServiceMsg.includes('您好')) gapItems.push('• 缺少标准开场问候语');
+            if (!duoWenFound) gapItems.push('• 缺少主动询问用户需求');
+            if (!duoXiangFound) gapItems.push('• 缺少预判用户潜在需求');
+            if (!duoZuoFound) gapItems.push('• 缺少增值服务延伸');
+            if (complaintFound) gapItems.push('• 存在消极服务语言');
+            if (serviceDialogs.length < 3) gapItems.push('• 对话轮次较少，沟通深度不足');
+
+            document.getElementById('buManAnalysis').innerHTML = `
+                <p><strong>服务感知 vs 用户期待 差异项：</strong></p>
+                ${gapItems.length > 0 ? gapItems.join('') : '<p>• 整体服务较为规范</p>'}
+            `;
+
+            document.getElementById('describeAnalysis').innerHTML = `
+                <p>用户是否感受到被理解、有共鸣、被重视？</p>
+                <p>${firstServiceMsg.includes('您好') ? '✅ ' : '⚠️ '}${firstServiceMsg.includes('您好') ? '客服使用了礼貌用语' : '缺少开场问候语，用户可能感到被忽视'}</p>
+                <p>${serviceContent.includes('理解') || serviceContent.includes('明白') ? '✅ ' : '⚠️ '}${serviceContent.includes('理解') || serviceContent.includes('明白') ? '有共情表达' : '缺少共情表达，用户可能感到不被理解'}</p>
+            `;
+
+            document.getElementById('solveAnalysis').innerHTML = `
+                <p>方案是否做到"利我、首心、周到"？</p>
+                <p>✅ 利我：${scoreNeng >= 70 ? '提供了有效信息' : '可提供更完整的信息'}</p>
+                <p>${duoWenFound ? '✅' : '⚠️'} 首心：${duoWenFound ? '有主动询问需求' : '可更主动询问需求'}</p>
+                <p>${duoZuoFound ? '✅' : '⚠️'} 周到：${duoZuoFound ? '有延伸服务' : '可提供更多延伸服务'}</p>
+            `;
+
+            // ========== 第五部分：服务优化建议 ==========
+            
+            const suggestions = [];
+
+            if (!firstServiceMsg.includes('您好')) {
+                suggestions.push({
+                    title: '话术优化建议 1：完善开场白',
+                    content: `当前开场："${firstServiceMsg || '无开场白'}"\n建议改为："您好！很高兴为您服务，请问有什么可以帮您？"\n\n目的：给用户被重视的感觉，建立良好第一印象`
+                });
+            }
+
+            if (!duoWenFound) {
+                suggestions.push({
+                    title: '话术优化建议 2：主动询问',
+                    content: `在完成当前问题回复后增加主动询问：\n"请问您还有其他问题需要了解吗？"\n"请问还有什么可以帮到您的？"\n\n目的：引导用户表达潜在需求，体现主动服务意识`
+                });
+            }
+
+            if (!duoXiangFound) {
+                suggestions.push({
+                    title: '话术优化建议 3：预判需求',
+                    content: `在回复后增加预判性服务：\n"根据您的情况，建议您...（额外提示）"\n"顺便提醒您...（相关注意事项）"\n\n目的：多想一步，提前帮助用户想到可能需要的信息`
+                });
+            }
+
+            if (!duoZuoFound) {
+                suggestions.push({
+                    title: '话术优化建议 4：增值服务',
+                    content: `在服务结束时增加增值服务：\n"温馨提示：...（天气/路况/营业时间等）"\n"另外，如果...（可能的延伸需求）"\n\n目的：超越用户期待，创造惊喜服务体验`
+                });
+            }
+
+            if (!lastServiceMsg.includes('还有') && !lastServiceMsg.includes('其他')) {
+                suggestions.push({
+                    title: '话术优化建议 5：确认闭环',
+                    content: `在服务结束前确认：\n"请问今天的问题都帮您解决了吗？还有什么需要帮忙的吗？"\n\n目的：确保问题真正解决，避免用户带着疑惑离开`
+                });
+            }
+
+            if (suggestions.length === 0) {
+                suggestions.push({
+                    title: '✨ 服务亮点',
+                    content: `本次对话整体表现良好：\n• ${firstServiceMsg.includes('您好') ? '有标准开场白' : ''}\n• ${duoWengFound ? '有主动询问' : ''}\n• ${duoXiangFound ? '有预判需求' : ''}\n• ${duoZuoFound ? '有增值服务' : ''}\n\n继续保持这些优点，持续提升服务质量！`
+                });
+            }
+
+            document.getElementById('suggestions').innerHTML = suggestions.map(s => `
+                <div class="suggestion-item">
+                    <div class="title">${s.title}</div>
+                    <div class="content">${s.content.replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearInput() {
+            document.getElementById('dialogInput').value = '';
+            document.getElementById('serviceCategory').value = '';
+            document.getElementById('qualityResult').value = '';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('analysisResult').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
